@@ -1,21 +1,22 @@
-from jinja2 import Environment, PackageLoader, FileSystemLoader
-from rich import print
+import os
+import subprocess
 from pathlib import Path
+
+import typer
+from git import Repo
+from giturlparse import parse
+from jinja2 import Environment, FileSystemLoader, PackageLoader
+from rich import print
+
 from ansible_gendoc.helpers import (
-    load_yml_file,
-    load_yml_files,
-    write_file,
-    read_files,
     controlleveltitle,
     convert_dict_of_string,
-    convert_string
+    convert_string,
+    load_yml_file,
+    load_yml_files,
+    read_files,
+    write_file,
 )
-from git import Repo
-
-import subprocess
-import os
-import typer
-from giturlparse import parse
 
 
 class Gendoc:
@@ -39,13 +40,11 @@ class Gendoc:
             stdout=subprocess.PIPE,
         )
         out, err = p.communicate()
-        return_code = p.returncode
         return {
             "code": p.returncode,
             "out": out,
             "err": err,
         }
-
 
     def _make_role_doc(self, role):
         # Read ansible galaxy info
@@ -66,7 +65,7 @@ class Gendoc:
         if os.path.isfile(os.path.join(role["path"], "meta/argument_specs.yml")):
             specs_vars = load_yml_file(
                 os.path.join(role["path"], "meta/argument_specs.yml"), self.verbose
-            )['argument_specs']
+            )["argument_specs"]
         else:
             specs_vars = None
         # load literaly role defaults/*.yml
@@ -80,7 +79,9 @@ class Gendoc:
         # load template and create templating environment
         if os.path.isfile(os.path.join(self.rolespath, "templates/README.j2")):
             env = Environment(
-                loader=FileSystemLoader(searchpath=os.path.join(self.rolespath, "templates")),
+                loader=FileSystemLoader(
+                    searchpath=os.path.join(self.rolespath, "templates")
+                ),
                 lstrip_blocks=True,
                 trim_blocks=True,
             )
@@ -94,11 +95,14 @@ class Gendoc:
         string_role_defaults_files = convert_string(defaults_files)
         # render role
         template = env.get_template("README.j2")
-        if 'namespace' in meta_vars['galaxy_info'] and 'role_name' in meta_vars['galaxy_info']:
-            rolename = ("%s.%s" % (meta_vars['galaxy_info']['namespace'],meta_vars['galaxy_info']['role_name'])).lower()
-        elif 'role_name' in meta_vars['galaxy_info']:
-            rolename = meta_vars['galaxy_info']['role_name'].lower()
-        else :
+        if (
+            "namespace" in meta_vars["galaxy_info"]
+            and "role_name" in meta_vars["galaxy_info"]
+        ):
+            rolename = f"{meta_vars["galaxy_info"]["namespace"]}.{meta_vars["galaxy_info"]["role_name"]}".lower()
+        elif "role_name" in meta_vars["galaxy_info"]:
+            rolename = meta_vars["galaxy_info"]["role_name"].lower()
+        else:
             rolename = os.path.basename(role["path"])
         # render method accepts the same arguments as the dict constructor
         t = template.render(
@@ -133,7 +137,7 @@ class Gendoc:
                 )
 
         if self.verbose:
-            print("Role '%s' ...done\n" % role["name"])
+            print(f"Role '{role["name"]}' ...done\n")
 
     def render(self):
         """

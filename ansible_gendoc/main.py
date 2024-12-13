@@ -1,23 +1,23 @@
+import os
+import shutil
+import sys
 from pathlib import Path
-from re import template
+from typing import Optional
+
+import typer
+
 from ansible_gendoc import __version__
 from ansible_gendoc.gendoc import Gendoc
-from typing import Optional
-import typer
-import os
-import sys
-import shutil
-
 
 app = typer.Typer()
 
 
 def _version_callback(value: bool) -> None:
     if value:
-        versionText = typer.style(
+        version_text = typer.style(
             f"ansible-gendoc v{__version__}", fg=typer.colors.RED, bg=typer.colors.WHITE
         )
-        typer.echo(versionText)
+        typer.echo(version_text)
         raise typer.Exit()
 
 
@@ -27,7 +27,10 @@ def init(
         default="./", help="The path of your role.", exists=True
     ),
     force: Optional[bool] = typer.Option(
-        False, "--force", "-f", help="Replace existing Template README.j2 in templates folder."
+        False,
+        "--force",
+        "-f",
+        help="Replace existing Template README.j2 in templates folder.",
     ),
 ):
     """
@@ -41,14 +44,13 @@ def init(
     if not os.path.isfile(os.path.join(path, "templates")):
         Path(os.path.dirname(template_path)).mkdir(parents=True, exist_ok=True)
     if not os.path.isfile(os.path.join(template_path, "README.j2")) or force:
-        pkgdir = sys.modules['ansible_gendoc'].__path__[0]
+        pkgdir = sys.modules["ansible_gendoc"].__path__[0]
         fullpath = os.path.join(pkgdir, "templates/README.j2")
         shutil.copy(fullpath, template_path)
     else:
         print("The template already exist !!!!")
         print("use --force to replace the existent.")
         raise typer.Exit(code=1)
-
 
 
 @app.command()
@@ -76,6 +78,7 @@ def render(
     )
     gendoc.render()
 
+
 @app.callback()
 def main(
     version: Optional[bool] = typer.Option(
@@ -88,6 +91,7 @@ def main(
     ),
 ) -> None:
     return
+
 
 if __name__ == "__main__":
     app()

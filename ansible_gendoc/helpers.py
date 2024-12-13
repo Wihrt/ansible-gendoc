@@ -1,9 +1,10 @@
-from pathlib import Path
-from rich import print
-import re
-import os
 import fnmatch
+import os
+import re
+from pathlib import Path
+
 import yaml
+from rich import print
 
 
 def load_yml_file(fpath, verbose):
@@ -111,6 +112,7 @@ def controlleveltitle(mdfiles):
             file["content"] = re.sub(r"((?:[#]+))", r"#\1", file["content"])
     return mdfiles
 
+
 def _convert_dict_of_string(d):
 
     if isinstance(d, dict):
@@ -131,8 +133,8 @@ def convert_dict_of_string(dict):
     output = []
     for file in dict:
         temp = {}
-        temp["filename"] = file['filename']
-        temp['content'] = _convert_dict_of_string(file['content'])
+        temp["filename"] = file["filename"]
+        temp["content"] = _convert_dict_of_string(file["content"])
         output.append(temp)
 
     return output
@@ -143,15 +145,16 @@ def convert_string(dict):
     output = []
     for file in dict:
         temp = {}
-        temp["filename"] = file['filename']
-        value =  yaml.dump(file['content'],Dumper=MyDumper)
-        temp['content'] = re.sub(r'^(.)$',r'        \1', value)
+        temp["filename"] = file["filename"]
+        value = yaml.dump(file["content"], Dumper=MyDumper)
+        temp["content"] = re.sub(r"^(.)$", r"        \1", value)
         output.append(temp)
 
     return output
 
 
 import yaml
+
 
 class MyDumper(yaml.Dumper):
 
